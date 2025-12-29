@@ -1,6 +1,8 @@
 #ifndef GUARD_STRINGS_H
 #define GUARD_STRINGS_H
 
+#include "gba/types.h"
+
 // Placeholders
 extern const u8 gText_ExpandedPlaceholder_Empty[];
 extern const u8 gText_ExpandedPlaceholder_Kun[];
@@ -376,7 +378,7 @@ extern const u8 gText_Speed[];
 extern const u8 gText_Dash[];
 extern const u8 gText_Plus[];
 
-//Pokédex text
+// Pokédex text
 extern const u8 gText_CryOf[];
 extern const u8 gText_SizeComparedTo[];
 extern const u8 gText_PokedexRegistration[];

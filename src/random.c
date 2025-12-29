@@ -1,13 +1,11 @@
 #include "global.h"
 #include "random.h"
-#if MODERN
 #include <alloca.h>
-#endif
+#include "zig/random.h"
 
 // IWRAM common
 COMMON_DATA rng_value_t gRngValue = {0};
 COMMON_DATA rng_value_t gRng2Value = {0};
-
 
 EWRAM_DATA static volatile bool8 sRngLoopUnlocked;
 
@@ -33,15 +31,15 @@ static void SFC32_Seed(struct Sfc32State *state, u32 seed, u8 stream)
     state->a = state->b = 0;
     state->c = seed;
     state->ctr = stream;
-    for(i = 0; i < 16; i++)
+    for (i = 0; i < 16; i++)
     {
         _SFC32_Next_Stream(state, stream);
     }
 }
 
 /*This ASM implementation uses some shortcuts and is generally faster on the GBA.
-* It's not necessarily faster if inlined, or on other platforms.
-* In addition, it's extremely non-portable. */
+ * It's not necessarily faster if inlined, or on other platforms.
+ * In addition, it's extremely non-portable. */
 u32 NAKED Random32(void)
 {
     asm(".thumb\n\
@@ -66,8 +64,7 @@ u32 NAKED Random32(void)
     stmia r5!, {r1, r2, r3, r4}\n\
     pop {r4, r5, r6}\n\
     bx lr\n\
-    .ltorg"
-    );
+    .ltorg");
 }
 
 u32 Random2_32(void)
@@ -90,12 +87,12 @@ void SeedRng2(u32 seed)
     SFC32_Seed(&gRng2Value, seed, STREAM2);
 }
 
-rng_value_t LocalRandomSeed(u32 seed)
-{
-    rng_value_t result;
-    SFC32_Seed(&result, seed, STREAM1);
-    return result;
-}
+// rng_value_t LocalRandomSeed(u32 seed)
+// {
+//     rng_value_t result;
+//     SFC32_Seed(&result, seed, STREAM1);
+//     return result;
+// }
 
 void AdvanceRandom(void)
 {
@@ -103,7 +100,7 @@ void AdvanceRandom(void)
         Random32();
 }
 
-#define LOOP_RANDOM_START \
+#define LOOP_RANDOM_START                        \
     struct Sfc32State *const state = &gRngValue; \
     sRngLoopUnlocked = FALSE;
 
@@ -111,16 +108,16 @@ void AdvanceRandom(void)
 
 #define LOOP_RANDOM ((u16)(_SFC32_Next(state) >> 16))
 
-#define SHUFFLE_IMPL \
-    u32 tmp; \
-    LOOP_RANDOM_START; \
-    --n; \
-    while (n > 1) \
-    { \
-        int j = (LOOP_RANDOM * (n+1)) >> 16; \
-        SWAP(data[n], data[j], tmp); \
-        --n; \
-    } \
+#define SHUFFLE_IMPL                           \
+    u32 tmp;                                   \
+    LOOP_RANDOM_START;                         \
+    --n;                                       \
+    while (n > 1)                              \
+    {                                          \
+        int j = (LOOP_RANDOM * (n + 1)) >> 16; \
+        SWAP(data[n], data[j], tmp);           \
+        --n;                                   \
+    }                                          \
     LOOP_RANDOM_END
 
 void Shuffle8(void *data_, size_t n)
@@ -149,10 +146,10 @@ void ShuffleN(void *data, size_t n, size_t size)
 
     while (n > 1)
     {
-        int j = (LOOP_RANDOM * (n+1)) >> 16;
-        memcpy(tmp, (u8 *)data + n*size, size); // tmp = data[n];
-        memcpy((u8 *)data + n*size, (u8 *)data + j*size, size); // data[n] = data[j];
-        memcpy((u8 *)data + j*size, tmp, size); // data[j] = tmp;
+        int j = (LOOP_RANDOM * (n + 1)) >> 16;
+        memcpy(tmp, (u8 *)data + n * size, size);                   // tmp = data[n];
+        memcpy((u8 *)data + n * size, (u8 *)data + j * size, size); // data[n] = data[j];
+        memcpy((u8 *)data + j * size, tmp, size);                   // data[j] = tmp;
         --n;
     }
 
@@ -160,16 +157,20 @@ void ShuffleN(void *data, size_t n, size_t size)
 }
 
 __attribute__((weak, alias("RandomUniformDefault")))
-u32 RandomUniform(enum RandomTag tag, u32 lo, u32 hi);
+u32
+RandomUniform(enum RandomTag tag, u32 lo, u32 hi);
 
 __attribute__((weak, alias("RandomUniformExceptDefault")))
-u32 RandomUniformExcept(enum RandomTag, u32 lo, u32 hi, bool32 (*reject)(u32));
+u32
+RandomUniformExcept(enum RandomTag, u32 lo, u32 hi, bool32 (*reject)(u32));
 
 __attribute__((weak, alias("RandomWeightedArrayDefault")))
-u32 RandomWeightedArray(enum RandomTag tag, u32 sum, u32 n, const u8 *weights);
+u32
+RandomWeightedArray(enum RandomTag tag, u32 sum, u32 n, const u8 *weights);
 
 __attribute__((weak, alias("RandomElementArrayDefault")))
-const void *RandomElementArray(enum RandomTag tag, const void *array, size_t size, size_t count);
+const void *
+RandomElementArray(enum RandomTag tag, const void *array, size_t size, size_t count);
 
 u32 RandomUniformDefault(enum RandomTag tag, u32 lo, u32 hi)
 {
